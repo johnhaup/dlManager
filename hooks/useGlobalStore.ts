@@ -38,7 +38,7 @@ const defaultState: StateValues = {
 
 export const useGlobalStore = create<GlobalStoreState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...defaultState,
       updateByKey: (key, value) => set({ [key]: value }),
       bulkUpdate: (update: Partial<StateValues>) => set({ ...update }),
@@ -48,12 +48,6 @@ export const useGlobalStore = create<GlobalStoreState>()(
     {
       name: `dlManager:global`,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) =>
-        Object.fromEntries(
-          Object.entries(state).filter(
-            ([key]) => !["isLoggedIn"].includes(key),
-          ),
-        ),
     },
   ),
 );

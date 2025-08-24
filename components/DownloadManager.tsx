@@ -1,5 +1,6 @@
 import { QBClient } from "@/api/qb";
 import { useGlobalStoreItem } from "@/hooks/useGlobalStore";
+import { addTorrentFile, getTorrentsList } from "@/services/api";
 import * as DocumentPicker from "expo-document-picker";
 import React, { useMemo, useState } from "react";
 import {
@@ -12,7 +13,7 @@ import {
 } from "react-native";
 import { ScreenWrapper } from "./ScreenWrapper";
 
-type Torrent = Awaited<ReturnType<QBClient["getTorrentsList"]>>[number];
+type Torrent = Awaited<ReturnType<typeof getTorrentsList>>[number];
 
 export default function DownloadManager() {
   const [host] = useGlobalStoreItem("baseUrl");
@@ -40,17 +41,20 @@ export default function DownloadManager() {
         multiple: false,
       });
 
-      if (res.canceled || !res.assets?.length) return;
-
-      console.log(res);
+      if (res.canceled || !res.assets?.length) {
+        return;
+      }
 
       const file = res.assets[0]; // { uri, name?, mimeType? }
 
-      await client.addTorrentFile({
+      await addTorrentFile({
         uri: file.uri,
         name: file.name ?? "file.torrent",
         type: file.mimeType ?? "application/x-bittorrent",
       });
+
+      const torrents = await getTorrentsList();
+      setTorrents(torrents);
     } catch (e: any) {
       alert(e?.message ?? "Failed to add .torrent");
     }
@@ -77,7 +81,7 @@ export default function DownloadManager() {
         style={{ marginTop: 12, alignSelf: "stretch" }}
         data={torrents}
         keyExtractor={(t) => t.hash}
-        onRefresh={async () => setTorrents(await client.getTorrentsList("all"))}
+        onRefresh={async () => setTorrents(await getTorrentsList("all"))}
         refreshing={false}
         renderItem={({ item }) => (
           <View style={styles.card}>

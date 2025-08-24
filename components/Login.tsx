@@ -1,7 +1,7 @@
-import { QBClient } from "@/api/qb";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useGlobalStoreItem } from "@/hooks/useGlobalStore";
-import React, { useMemo } from "react";
+import { login } from "@/services/api";
+import React from "react";
 import { Button, StyleSheet, Text, TextInput } from "react-native";
 
 export function Login() {
@@ -10,12 +10,10 @@ export function Login() {
   const [username, setUsername] = useGlobalStoreItem("username");
   const [password, setPassword] = useGlobalStoreItem("password");
   const [_isLoggedIn, setIsLoggedIn] = useGlobalStoreItem("isLoggedIn");
-  const url = port ? `${host}:${port}` : `${host}`;
-  const client = useMemo(() => new QBClient(url), [url]);
 
   const onLogin = async () => {
     try {
-      const isSuccessful = await client.login(username, password);
+      const isSuccessful = await login(username, password);
       setIsLoggedIn(isSuccessful);
     } catch (e: any) {
       alert(e.message);
