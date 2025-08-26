@@ -9,12 +9,10 @@ export function Login() {
   const [port, setPort] = useGlobalStoreItem("port");
   const [username, setUsername] = useGlobalStoreItem("username");
   const [password, setPassword] = useGlobalStoreItem("password");
-  const [_isLoggedIn, setIsLoggedIn] = useGlobalStoreItem("isLoggedIn");
 
   const onLogin = async () => {
     try {
-      const isSuccessful = await login(username, password);
-      setIsLoggedIn(isSuccessful);
+      await login(username, password);
     } catch (e: any) {
       alert(e.message);
     }

@@ -4,9 +4,9 @@ import { useGlobalStoreItem } from "@/hooks/useGlobalStore";
 import React from "react";
 
 export default function Home() {
-  const [isLoggedIn] = useGlobalStoreItem("isLoggedIn");
+  const [cookie] = useGlobalStoreItem("cookie");
 
-  if (!isLoggedIn) {
+  if (!cookie) {
     return <Login />;
   }
 

@@ -2,6 +2,13 @@ import { useGlobalStore } from "@/hooks/useGlobalStore";
 import ky from "ky";
 import { Torrent } from "./types";
 
+const getHeaders = (additionalHeaders = {}) => {
+  return {
+    Referer: `${getPrefixUrl()}/`,
+    ...additionalHeaders,
+  };
+};
+
 const getPrefixUrl = () => {
   const baseUrl = useGlobalStore.getState().baseUrl;
   const port = useGlobalStore.getState().port;
@@ -14,6 +21,8 @@ const getPrefixUrl = () => {
 
 export const client = ky.create({
   prefixUrl: getPrefixUrl(),
+  headers: getHeaders(),
+  credentials: "include",
 });
 
 /**
@@ -22,14 +31,23 @@ export const client = ky.create({
 export async function login(username: string, password: string) {
   try {
     const prefixUrl = getPrefixUrl();
+    const body = new URLSearchParams({ username, password }).toString();
 
     const res = await ky.post(`${prefixUrl}/api/v2/auth/login`, {
-      headers: {
+      headers: getHeaders({
         "Content-Type": "application/x-www-form-urlencoded",
-      },
-      json: { username, password },
+      }),
+      body,
       credentials: "include",
     });
+
+    const setCookie = res.headers.get("set-cookie");
+    const sidCookie = setCookie?.match(/SID=([^;]+)/)?.[1] ?? null;
+
+    if (sidCookie) {
+      const cookie = `SID=${sidCookie}`;
+      useGlobalStore.setState({ cookie });
+    }
 
     if (!res.ok) {
       throw new Error(`Login failed: ${res.status}`);
@@ -42,13 +60,29 @@ export async function login(username: string, password: string) {
   }
 }
 
+export async function logout() {
+  const prefixUrl = getPrefixUrl();
+  useGlobalStore.setState({ cookie: "" });
+
+  const res = await ky.post(`${prefixUrl}/api/v2/auth/logout`, {
+    headers: getHeaders(),
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Login failed: ${res.status}`);
+  }
+}
+
 export async function getTorrentsList(filter = "all") {
   const res = await ky<Torrent[]>(
     `${getPrefixUrl()}/api/v2/torrents/info?filter=${encodeURIComponent(filter)}`,
     {
-      credentials: "include",
+      headers: getHeaders(),
     },
   );
+
+  console.log("getTorrentsList", res);
 
   if (!res.ok) {
     throw new Error(`torrents/info failed: ${res.status}`);
@@ -75,8 +109,9 @@ export async function addTorrentFile(
     form.append("savepath", opts.savepath);
   }
   const res = await ky.post(`${getPrefixUrl()}/api/v2/torrents/add`, {
-    json: form,
+    body: form,
     credentials: "include",
+    headers: getHeaders(),
   });
 
   if (!res.ok) {

@@ -12,7 +12,7 @@ type GlobalStoreState = {
   port: number | null;
   username: string;
   password: string;
-  isLoggedIn: boolean;
+  cookie: string;
   updateByKey: <T extends ValueKey>(key: T, value: StateValues[T]) => void;
   /**
    * Set multiple value at once
@@ -33,7 +33,7 @@ const defaultState: StateValues = {
   port: 9999,
   username: "",
   password: "",
-  isLoggedIn: false,
+  cookie: "",
 };
 
 export const useGlobalStore = create<GlobalStoreState>()(

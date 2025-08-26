@@ -5527,6 +5527,11 @@ react-native-screens@~4.11.1:
     react-native-is-edge-to-edge "^1.1.7"
     warn-once "^0.1.0"
 
+react-native-spacer-view@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/react-native-spacer-view/-/react-native-spacer-view-0.1.3.tgz#f858dce4e3cf764ba65174ce86033a5e9f8af4c0"
+  integrity sha512-2Rl/jcU6Hw44MOy9fx9cIlPO968DjQxU5nM3ejeLN1+/p5WMxT8njNgVxV1Pwtpxrgjf3xNNGpZQV3CDpaymwg==
+
 react-native-web@~0.20.0:
   version "0.20.0"
   resolved "https://registry.npmjs.org/react-native-web/-/react-native-web-0.20.0.tgz"

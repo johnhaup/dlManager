@@ -1,17 +1,20 @@
 import { QBClient } from "@/api/qb";
 import { useGlobalStoreItem } from "@/hooks/useGlobalStore";
-import { addTorrentFile, getTorrentsList } from "@/services/api";
+import { addTorrentFile, getTorrentsList, logout } from "@/services/api";
 import * as DocumentPicker from "expo-document-picker";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Button,
   FlatList,
+  ListRenderItemInfo,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { Spacer } from "react-native-spacer-view";
 import { ScreenWrapper } from "./ScreenWrapper";
+import { TorrentItem } from "./TorrentItem";
 
 type Torrent = Awaited<ReturnType<typeof getTorrentsList>>[number];
 
@@ -56,9 +59,28 @@ export default function DownloadManager() {
       const torrents = await getTorrentsList();
       setTorrents(torrents);
     } catch (e: any) {
+      console.error(e);
+
       alert(e?.message ?? "Failed to add .torrent");
     }
   };
+
+  const onRefresh = useCallback(async () => {
+    try {
+      const newList = await getTorrentsList("all");
+      setTorrents(newList);
+    } catch (e: any) {
+      console.log(e);
+      alert(e?.message ?? "Failed to refresh torrents");
+    }
+  }, []);
+
+  const keyExtractor = useCallback((item: Torrent) => item.hash, []);
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<Torrent>) => <TorrentItem torrent={item} />,
+    [],
+  );
 
   return (
     <ScreenWrapper>
@@ -77,51 +99,26 @@ export default function DownloadManager() {
         <Button title=".torrent" onPress={onAddTorrentFile} />
       </View>
 
+      <Button title="Logout" onPress={logout} />
+
       <FlatList
-        style={{ marginTop: 12, alignSelf: "stretch" }}
+        style={{ marginTop: 12 }}
         data={torrents}
-        keyExtractor={(t) => t.hash}
-        onRefresh={async () => setTorrents(await getTorrentsList("all"))}
+        keyExtractor={keyExtractor}
+        onRefresh={onRefresh}
         refreshing={false}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text>
-              {item.state} • {(item.progress * 100).toFixed(1)}%
-            </Text>
-            <Text>
-              ↓ {(item.dlspeed / 1024).toFixed(0)} KB/s • ↑{" "}
-              {(item.upspeed / 1024).toFixed(0)} KB/s
-            </Text>
-            {item.eta > 0 && <Text>ETA: {formatEta(item.eta)}</Text>}
-          </View>
-        )}
+        renderItem={renderItem}
+        contentContainerStyle={styles.contentContainerStyle}
+        ItemSeparatorComponent={() => <Spacer height={8} />}
       />
     </ScreenWrapper>
   );
 }
 
-function formatEta(s: number) {
-  if (s <= 0 || !isFinite(s)) return "—";
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = Math.floor(s % 60);
-  return [h ? `${h}h` : null, m ? `${m}m` : null, `${sec}s`]
-    .filter(Boolean)
-    .join(" ");
-}
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#1e272e",
-  },
   container: {
     flex: 1,
     padding: 16,
-    gap: 12,
   },
   h1: { fontSize: 22, fontWeight: "600", color: "#d2dae2" },
   input: {
@@ -131,12 +128,7 @@ const styles = StyleSheet.create({
     padding: 10,
     color: "#d2dae2",
   },
-  card: {
-    borderWidth: 1,
-    borderColor: "#e3e3e3",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+  contentContainerStyle: {
+    paddingHorizontal: 16,
   },
-  name: { fontWeight: "600", color: "#d2dae2" },
 });
