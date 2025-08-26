@@ -2,7 +2,7 @@ import { QBClient } from "@/api/qb";
 import { useGlobalStoreItem } from "@/hooks/useGlobalStore";
 import { addTorrentFile, getTorrentsList, logout } from "@/services/api";
 import * as DocumentPicker from "expo-document-picker";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Button,
   FlatList,
@@ -65,7 +65,7 @@ export default function DownloadManager() {
     }
   };
 
-  const onRefresh = useCallback(async () => {
+  const fetchTorrents = useCallback(async () => {
     try {
       const newList = await getTorrentsList("all");
       setTorrents(newList);
@@ -74,6 +74,10 @@ export default function DownloadManager() {
       alert(e?.message ?? "Failed to refresh torrents");
     }
   }, []);
+
+  useEffect(() => {
+    fetchTorrents();
+  }, [fetchTorrents]);
 
   const keyExtractor = useCallback((item: Torrent) => item.hash, []);
 
@@ -105,7 +109,7 @@ export default function DownloadManager() {
         style={{ marginTop: 12 }}
         data={torrents}
         keyExtractor={keyExtractor}
-        onRefresh={onRefresh}
+        onRefresh={fetchTorrents}
         refreshing={false}
         renderItem={renderItem}
         contentContainerStyle={styles.contentContainerStyle}

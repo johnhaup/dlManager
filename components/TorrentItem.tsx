@@ -1,7 +1,9 @@
 import { Torrent } from "@/services/types";
 import { useThemeColors } from "@/styles/useThemeColors";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Spacer } from "react-native-spacer-view";
+import { StyledText } from "./StyledText";
 
 type Props = {
   torrent: Torrent;
@@ -11,17 +13,18 @@ export function TorrentItem({ torrent }: Props) {
   const [backgroundColor] = useThemeColors(["cardBackground"]);
   return (
     <View style={[styles.card, { backgroundColor }]}>
-      <Text style={styles.name} numberOfLines={1}>
-        {torrent.name}
-      </Text>
-      <Text>
+      <StyledText style={styles.name}>{torrent.name}</StyledText>
+      <Spacer height={4} />
+      <StyledText>
         {torrent.state} • {(torrent.progress * 100).toFixed(1)}%
-      </Text>
-      <Text>
+      </StyledText>
+      <StyledText>
         ↓ {(torrent.dlspeed / 1024).toFixed(0)} KB/s • ↑{" "}
         {(torrent.upspeed / 1024).toFixed(0)} KB/s
-      </Text>
-      {torrent.eta > 0 && <Text>ETA: {formatEta(torrent.eta)}</Text>}
+      </StyledText>
+      {torrent.eta > 0 && (
+        <StyledText>ETA: {formatEta(torrent.eta)}</StyledText>
+      )}
     </View>
   );
 }
